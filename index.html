@@ -2,33 +2,112 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>학교 교과서 정보 검색</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>파주 지역 초등학교 교과서 정보 검색</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    section { margin-bottom: 40px; }
-    input, select, button { padding: 5px; margin-right: 10px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background: #f0f0f0; }
+    body {
+      font-family: 'Segoe UI',  Tahoma, sans-serif;
+      background-color: #f0f4f8;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      display: flex;
+      align-items: center;
+      background-color: #e0f7fa;
+      padding: 15px 20px;
+      border-radius: 10px;
+      color: #006064;
+      margin-bottom: 30px;
+    }
+    h1 .icon {
+      font-size: 1.8em;
+      margin-right: 12px;
+    }
+    h1 small {
+      margin-left: auto;
+      font-size: 0.9em;
+      color: #004d40;
+    }
+    section {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+    section h2 {
+      font-size: 1.2em;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      color: #004d40;
+    }
+    section h2 .icon {
+      margin-right: 8px;
+    }
+    input, select, button {
+      padding: 8px 12px;
+      margin-right: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1em;
+    }
+    button {
+      background-color: #80deea;
+      color: #004d40;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #4dd0e1;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background: #b2ebf2;
+    }
+    tr:nth-child(even) {
+      background: #f5faff;
+    }
   </style>
 </head>
 <body>
-  <h1>학교 교과서 정보 검색</h1>
+  <h1>
+    <span class="icon">📚</span>
+    파주 지역 초등학교 교과서 정보 검색
+    <small>(made by 와석초 연구학교 전학공)</small>
+  </h1>
 
   <section>
-    <h2>학교명으로 검색</h2>
+    <h2><span class="icon">📖</span>학교명으로 검색</h2>
     <input type="text" id="schoolSearch" placeholder="학교명을 입력하세요">
     <button id="searchBtn">검색</button>
     <table id="schoolTable">
       <thead>
-        <tr><th>교과명</th><th>출판사</th><th>저자</th></tr>
+        <tr>
+          <th>교과명</th>
+          <th>출판사</th>
+          <th>저자</th>
+        </tr>
       </thead>
       <tbody></tbody>
     </table>
   </section>
 
   <section>
-    <h2>교과명·출판사별 학교 검색</h2>
+    <h2><span class="icon">📘</span>교과명·출판사별 학교 검색</h2>
     <select id="subjectSelect">
       <option value="">교과명 선택</option>
     </select>
@@ -45,75 +124,75 @@
   </section>
 
   <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    let data = [];
+    document.addEventListener('DOMContentLoaded', () => {
+      let data = [];
 
-    // data.json 불러오기
-    fetch('data.json')
-      .then(res => res.json())
-      .then(jsonData => {
-        data = jsonData;
-        populateDropdowns();
-      })
-      .catch(err => console.error('data.json 로드 실패:', err));
+      fetch('data.json')
+        .then(res => res.json())
+        .then(jsonData => {
+          data = jsonData;
+          populateDropdowns();
+        })
+        .catch(err => console.error('data.json 로드 실패:', err));
 
-    // 학교명 검색 결과 렌더링
-    function renderSchoolTable(list) {
-      const tbody = document.querySelector('#schoolTable tbody');
-      tbody.innerHTML = '';
-      list.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${item.교과명}</td><td>${item.출판사}</td><td>${item.저자}</td>`;
-        tbody.appendChild(tr);
+      function renderSchoolTable(list) {
+        const tbody = document.querySelector('#schoolTable tbody');
+        tbody.innerHTML = '';
+        list.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${item.교과명}</td>
+            <td>${item.출판사}</td>
+            <td>${item.저자}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function renderSubjectTable(list) {
+        const tbody = document.querySelector('#subjectTable tbody');
+        tbody.innerHTML = '';
+        [...new Set(list.map(i => i.학교명))].forEach(school => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${school}</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function populateDropdowns() {
+        const subjectSelect = document.getElementById('subjectSelect');
+        const publisherSelect = document.getElementById('publisherSelect');
+
+        [...new Set(data.map(i => i.교과명))].sort()
+          .forEach(sub => {
+            const opt = document.createElement('option');
+            opt.value = sub; opt.textContent = sub;
+            subjectSelect.appendChild(opt);
+          });
+
+        [...new Set(data.map(i => i.출판사))].sort()
+          .forEach(pub => {
+            const opt = document.createElement('option');
+            opt.value = pub; opt.textContent = pub;
+            publisherSelect.appendChild(opt);
+          });
+      }
+
+      document.getElementById('searchBtn').addEventListener('click', () => {
+        const key = document.getElementById('schoolSearch').value.trim();
+        renderSchoolTable(data.filter(item => item.학교명.includes(key)));
       });
-    }
 
-    // 교과명·출판사별 학교 리스트 렌더링
-    function renderSubjectTable(list) {
-      const tbody = document.querySelector('#subjectTable tbody');
-      tbody.innerHTML = '';
-      [...new Set(list.map(i => i.학교명))].forEach(school => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${school}</td>`;
-        tbody.appendChild(tr);
+      document.getElementById('filterBtn').addEventListener('click', () => {
+        const sub = document.getElementById('subjectSelect').value;
+        const pub = document.getElementById('publisherSelect').value;
+        const filtered = data.filter(item =>
+          (sub === '' || item.교과명 === sub) &&
+          (pub === '' || item.출판사 === pub)
+        );
+        renderSubjectTable(filtered);
       });
-    }
-
-    // 드롭다운 옵션 채우기
-    function populateDropdowns() {
-      const subjects = [...new Set(data.map(i => i.교과명))].sort();
-      const publishers = [...new Set(data.map(i => i.출판사))].sort();
-      const subjectSelect = document.getElementById('subjectSelect');
-      const publisherSelect = document.getElementById('publisherSelect');
-
-      subjects.forEach(sub => {
-        const opt = document.createElement('option');
-        opt.value = sub; opt.textContent = sub;
-        subjectSelect.appendChild(opt);
-      });
-      publishers.forEach(pub => {
-        const opt = document.createElement('option');
-        opt.value = pub; opt.textContent = pub;
-        publisherSelect.appendChild(opt);
-      });
-    }
-
-    // 이벤트 바인딩
-    document.getElementById('searchBtn').addEventListener('click', () => {
-      const key = document.getElementById('schoolSearch').value.trim();
-      renderSchoolTable(data.filter(item => item.학교명.includes(key)));
     });
-
-    document.getElementById('filterBtn').addEventListener('click', () => {
-      const sub = document.getElementById('subjectSelect').value;
-      const pub = document.getElementById('publisherSelect').value;
-      const filtered = data.filter(item =>
-        (sub === '' || item.교과명 === sub) &&
-        (pub === '' || item.출판사 === pub)
-      );
-      renderSubjectTable(filtered);
-    });
-  });
   </script>
 </body>
 </html>
