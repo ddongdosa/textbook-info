@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>학교 교과서 정보 검색</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    section { margin-bottom: 40px; }
+    input, select, button { padding: 5px; margin-right: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #f0f0f0; }
+  </style>
+</head>
+<body>
+  <h1>학교 교과서 정보 검색</h1>
+
+  <section>
+    <h2>학교명으로 검색</h2>
+    <input type="text" id="schoolSearch" placeholder="학교명을 입력하세요">
+    <button id="searchBtn">검색</button>
+    <table id="schoolTable">
+      <thead>
+        <tr><th>교과명</th><th>출판사</th><th>저자</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>교과명·출판사별 학교 검색</h2>
+    <select id="subjectSelect">
+      <option value="">교과명 선택</option>
+    </select>
+    <select id="publisherSelect">
+      <option value="">출판사 선택</option>
+    </select>
+    <button id="filterBtn">검색</button>
+    <table id="subjectTable">
+      <thead>
+        <tr><th>학교명</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    let data = [];
+
+    // data.json 불러오기
+    fetch('data.json')
+      .then(res => res.json())
+      .then(jsonData => {
+        data = jsonData;
+        populateDropdowns();
+      })
+      .catch(err => console.error('data.json 로드 실패:', err));
+
+    // 학교명 검색 결과 렌더링
+    function renderSchoolTable(list) {
+      const tbody = document.querySelector('#schoolTable tbody');
+      tbody.innerHTML = '';
+      list.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${item.교과명}</td><td>${item.출판사}</td><td>${item.저자}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 교과명·출판사별 학교 리스트 렌더링
+    function renderSubjectTable(list) {
+      const tbody = document.querySelector('#subjectTable tbody');
+      tbody.innerHTML = '';
+      [...new Set(list.map(i => i.학교명))].forEach(school => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${school}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 드롭다운 옵션 채우기
+    function populateDropdowns() {
+      const subjects = [...new Set(data.map(i => i.교과명))].sort();
+      const publishers = [...new Set(data.map(i => i.출판사))].sort();
+      const subjectSelect = document.getElementById('subjectSelect');
+      const publisherSelect = document.getElementById('publisherSelect');
+
+      subjects.forEach(sub => {
+        const opt = document.createElement('option');
+        opt.value = sub; opt.textContent = sub;
+        subjectSelect.appendChild(opt);
+      });
+      publishers.forEach(pub => {
+        const opt = document.createElement('option');
+        opt.value = pub; opt.textContent = pub;
+        publisherSelect.appendChild(opt);
+      });
+    }
+
+    // 이벤트 바인딩
+    document.getElementById('searchBtn').addEventListener('click', () => {
+      const key = document.getElementById('schoolSearch').value.trim();
+      renderSchoolTable(data.filter(item => item.학교명.includes(key)));
+    });
+
+    document.getElementById('filterBtn').addEventListener('click', () => {
+      const sub = document.getElementById('subjectSelect').value;
+      const pub = document.getElementById('publisherSelect').value;
+      const filtered = data.filter(item =>
+        (sub === '' || item.교과명 === sub) &&
+        (pub === '' || item.출판사 === pub)
+      );
+      renderSubjectTable(filtered);
+    });
+  });
+  </script>
+</body>
+</html>
